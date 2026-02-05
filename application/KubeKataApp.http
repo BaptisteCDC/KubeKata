@@ -1,0 +1,6 @@
+@KubeKataApp_HostAddress = http://localhost:5155
+
+GET {{KubeKataApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

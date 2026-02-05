@@ -1,0 +1,11 @@
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.doccache
+.VSCodeCounter/
+.vscode/
+.idea/
+.git/
+.gitignore
+.dockerignore
