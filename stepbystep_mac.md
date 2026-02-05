@@ -32,11 +32,21 @@ Run this to build images directly inside Minikube's Docker daemon:
 eval $(minikube docker-env)
 ```
 
-### 2. Build the Docker Image
-Navigate to the application folder and build the image:
+### 2. Build and Dockerize the Application
+To avoid SSL issues during the Docker build, we will publish the application locally and then copy the binaries into a lean Docker image.
+
+#### A. Publish locally
 ```bash
 cd application
-docker build -t kubekata-app:latest .
+dotnet publish -c Release
+```
+
+#### B. Build the Docker Image
+Assure-toi d'être dans le dossier `application` :
+```bash
+cd application
+eval $(minikube docker-env)
+docker build -t kubekata-app -f Dockerfile .
 cd ..
 ```
 
@@ -60,4 +70,39 @@ minikube service kubekata-service --url
 ```
 
 ---
-Next Phase: [Phase 3: Monitoring]
+## Phase 3: Monitoring
+
+### 1. Install Prometheus and Grafana
+We use the `kube-prometheus-stack` to install everything at once:
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+helm upgrade --install prom prometheus-community/kube-prometheus-stack -n monitoring --create-namespace
+```
+
+### 2. Enable Metrics Server
+Wait for the monitoring pods to be ready, then enable the metrics server:
+```bash
+minikube addons enable metrics-server
+```
+
+### 3. Access Grafana
+#### A. Create a Tunnel
+```bash
+kubectl port-forward -n monitoring service/prom-grafana 3000:80
+```
+
+#### B. Get Login Credentials
+In another terminal:
+```bash
+# User: admin
+# Password:
+kubectl get secret -n monitoring prom-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo ""
+```
+
+#### C. Login
+Open [http://localhost:3000](http://localhost:3000) and explore the default dashboards.
+
+---
+Next Phase: [Phase 4: Scalability]
