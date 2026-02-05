@@ -108,13 +108,24 @@ Open [http://localhost:3002](http://localhost:3002) and explore the default dash
 
 Maintenant que ton application expose des métriques (via `/metrics`), voici comment les visualiser :
 
-#### A. Vérifier que Prometheus voit ton app
-1. Dans Grafana, va dans le menu **Explore** (icône boussole).
-2. Sélectionne la source de données **Prometheus**.
-3. Tape `kubekata_admins_created_total` dans la barre de recherche.
-4. Clique sur **Run Query**. Si tu vois une valeur (ex: 1), c'est gagné !
+#### B. Vérifier la connexion Prometheus (Debug)
+Si tes données n'apparaissent pas, vérifie que Prometheus "voit" bien ton application :
+1. Lance un tunnel vers Prometheus :
+   ```bash
+   kubectl port-forward -n monitoring prometheus-prom-kube-prometheus-stack-prometheus-0 9090
+   ```
+2. Ouvre [http://localhost:9090/targets](http://localhost:9090/targets).
+3. Cherche `kubekata-app-monitor`. Il doit être en état **UP**. Si ce n'est pas le cas, vérifie les labels de ton Service.
 
-#### B. Créer ton premier graphique
+> [!TIP]
+> **Que veut dire "Vérifier les labels" ?**
+> Kubernetes utilise des étiquettes (Labels) pour lier les objets. Pour que le monitoring fonctionne :
+> 1. Ton **Service** doit avoir le label `app: kubekata` (dans `metadata.labels`).
+> 2. Ton **ServiceMonitor** doit avoir le sélecteur `matchLabels: app: kubekata` qui pointe vers ce service.
+> - **Vérifier en ligne de commande** : `kubectl get svc --show-labels`
+> - **Vérifier dans le code** : Compare `k8s/app-deployment.yaml` et `k8s/app-servicemonitor.yaml`.
+
+#### C. Créer ton premier graphique
 1. Va dans **Dashboards** > **New** > **New Dashboard**.
 2. Clique sur **Add visualization**.
 3. Sélectionne la source **Prometheus**.
