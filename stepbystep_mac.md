@@ -102,7 +102,25 @@ kubectl get secret -n monitoring prom-grafana -o jsonpath="{.data.admin-password
 ```
 
 #### C. Login
-Open [http://localhost:3000](http://localhost:3000) and explore the default dashboards.
+Open [http://localhost:3002](http://localhost:3002) and explore the default dashboards.
+
+### 4. Intégrer ton Application dans Grafana
+
+Maintenant que ton application expose des métriques (via `/metrics`), voici comment les visualiser :
+
+#### A. Vérifier que Prometheus voit ton app
+1. Dans Grafana, va dans le menu **Explore** (icône boussole).
+2. Sélectionne la source de données **Prometheus**.
+3. Tape `kubekata_admins_created_total` dans la barre de recherche.
+4. Clique sur **Run Query**. Si tu vois une valeur (ex: 1), c'est gagné !
+
+#### B. Créer ton premier graphique
+1. Va dans **Dashboards** > **New** > **New Dashboard**.
+2. Clique sur **Add visualization**.
+3. Sélectionne la source **Prometheus**.
+4. Dans le champ **Query**, entre : `kubekata_admins_created_total`.
+5. Dans l'onglet **Options** à droite, change le titre en "Total Admins Created".
+6. Clique sur **Save** en haut à droite.
 
 ---
 Next Phase: [Phase 4: Scalability]

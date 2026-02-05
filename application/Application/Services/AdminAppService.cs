@@ -9,10 +9,12 @@ namespace KubeKataApp.Application.Services;
 public class AdminAppService : IAdminAppService
 {
     private readonly IAdminRepository _repository;
+    private readonly KubeKataMetrics _metrics;
 
-    public AdminAppService(IAdminRepository repository)
+    public AdminAppService(IAdminRepository repository, KubeKataMetrics metrics)
     {
         _repository = repository;
+        _metrics = metrics;
     }
 
     public async Task<IEnumerable<AdminAccountDto>> GetAllAdminsAsync()
@@ -37,6 +39,7 @@ public class AdminAppService : IAdminAppService
         );
 
         await _repository.AddAsync(admin);
+        _metrics.RecordAdminCreated();
         return MapToDto(admin);
     }
 

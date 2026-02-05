@@ -3,11 +3,24 @@ using KubeKataApp.Application.Services;
 using KubeKataApp.Domain.Repositories;
 using KubeKataApp.Infrastructure.Middleware;
 using KubeKataApp.Infrastructure.Repositories;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
+// Metrics & OpenTelemetry
+builder.Services.AddSingleton<KubeKataMetrics>();
+builder.Services.AddOpenTelemetry()
+    .WithMetrics(metrics => metrics
+        .AddMeter(KubeKataMetrics.MeterName)
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddRuntimeInstrumentation()
+        .AddProcessInstrumentation()
+        .AddPrometheusExporter());
 
 // DDD Registrations
 builder.Services.AddSingleton<IAdminRepository, InMemoryAdminRepository>();
@@ -31,5 +44,6 @@ app.UseMiddleware<SimulatedDelayMiddleware>();
 app.UseHttpsRedirection();
 
 app.MapControllers();
+app.UseOpenTelemetryPrometheusScrapingEndpoint();
 
 app.Run();
