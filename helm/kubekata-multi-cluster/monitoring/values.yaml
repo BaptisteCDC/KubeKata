@@ -1,0 +1,8 @@
+global:
+  namespace:
+    apps: default
+    queue: queue
+    monitoring: monitoring
+
+monitoring:
+  release: prom

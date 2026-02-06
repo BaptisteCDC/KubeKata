@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubekata-app-monitor
+  namespace: {{ .Values.global.namespace.monitoring }}
+  labels:
+    release: {{ .Values.monitoring.release }}
+spec:
+  selector:
+    matchLabels:
+      app: kubekata
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.global.namespace.apps }}
+  endpoints:
+  - port: http
+    path: /metrics
+    interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: kubekata-worker-monitor
+  namespace: {{ .Values.global.namespace.monitoring }}
+  labels:
+    release: {{ .Values.monitoring.release }}
+spec:
+  selector:
+    matchLabels:
+      app: kubekata-worker
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.global.namespace.apps }}
+  endpoints:
+  - port: metrics
+    path: /metrics
+    interval: 15s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: rabbitmq-monitor
+  namespace: {{ .Values.global.namespace.monitoring }}
+  labels:
+    release: {{ .Values.monitoring.release }}
+spec:
+  selector:
+    matchLabels:
+      app: rabbitmq
+  namespaceSelector:
+    matchNames:
+      - {{ .Values.global.namespace.queue }}
+  endpoints:
+  - port: prometheus
+    path: /metrics
+    interval: 15s

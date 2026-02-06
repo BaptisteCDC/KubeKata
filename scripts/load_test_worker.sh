@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Configuration
-URL="http://127.0.0.1:64134/api/Admin"
+URL="http://127.0.0.1:54489/api/Admin"
 COUNT=${1:-20} # Par défaut 20 cycles (100 GETs total)
 SLEEP_TIME=${2:-0.1} # Délai entre les groupes de requêtes
 
@@ -24,7 +24,7 @@ do
        }" > /dev/null
 
   # 2. 5x GET - Récupération de la liste
-  for g in {1..5}
+  for g in {1..50}
   do
     echo -n "g"
     curl -s "$URL" > /dev/null

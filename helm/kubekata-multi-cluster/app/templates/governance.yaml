@@ -1,0 +1,26 @@
+{{- if .Values.governance.enabled }}
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: apps-high-priority
+value: {{ .Values.governance.priorities.high }}
+globalDefault: false
+description: "High priority for API"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: apps-low-priority
+value: {{ .Values.governance.priorities.low }}
+globalDefault: false
+description: "Low priority for workers"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pod-quota
+  namespace: {{ .Values.global.namespace.apps }}
+spec:
+  hard:
+    pods: {{ .Values.governance.podQuota | quote }}
+{{- end }}

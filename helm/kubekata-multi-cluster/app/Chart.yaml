@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kubekata-app
+description: Application components for KubeKata (Multi-Cluster)
+type: application
+version: 1.0.0
+appVersion: "1.0.0"

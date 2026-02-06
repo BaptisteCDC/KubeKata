@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.worker.name }}
+  namespace: {{ .Values.global.namespace.apps }}
+  labels:
+    app: kubekata-worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      app: kubekata-worker
+  template:
+    metadata:
+      labels:
+        app: kubekata-worker
+    spec:
+      {{- if .Values.governance.enabled }}
+      priorityClassName: apps-low-priority
+      {{- end }}
+      containers:
+      - name: kubekata-worker
+        image: {{ .Values.worker.image | quote }}
+        imagePullPolicy: Never
+        env:
+        - name: RabbitMQ__Host
+          value: "rabbitmq.{{ .Values.global.namespace.queue }}.svc.cluster.local"
+        - name: RabbitMQ__User
+          value: {{ .Values.rabbitmq.user | quote }}
+        - name: RabbitMQ__Password
+          value: {{ .Values.rabbitmq.password | quote }}
+        ports:
+        - name: metrics
+          containerPort: 9464
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kubekata-worker-service
+  namespace: {{ .Values.global.namespace.apps }}
+spec:
+  selector:
+    app: kubekata-worker
+  ports:
+    - name: metrics
+      protocol: TCP
+      port: 9464
+      targetPort: 9464
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kubekata-worker-scaler
+  namespace: {{ .Values.global.namespace.apps }}
+spec:
+  scaleTargetRef:
+    name: {{ .Values.worker.name }}
+  minReplicaCount: {{ .Values.worker.scaling.minReplicas }}
+  maxReplicaCount: {{ .Values.worker.scaling.maxReplicas }}
+  triggers:
+  - type: rabbitmq
+    metadata:
+      queueName: admin-created
+      mode: QueueLength
+      value: {{ .Values.worker.scaling.threshold | quote }}
+      host: amqp://{{ .Values.rabbitmq.user }}:{{ .Values.rabbitmq.password }}@rabbitmq.{{ .Values.global.namespace.queue }}.svc.cluster.local:5672/
