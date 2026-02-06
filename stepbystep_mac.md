@@ -31,7 +31,7 @@ Run this to build images directly inside Minikube's Docker daemon:
 ```bash
 eval $(minikube docker-env)
 ```
-
+// TODO: Revoir cette partie pour faire du multi langage
 ### 2. Build and Dockerize the Application
 To avoid SSL issues during the Docker build, we will publish the application locally and then copy the binaries into a lean Docker image.
 

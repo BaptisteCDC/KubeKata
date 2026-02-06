@@ -38,7 +38,8 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-// Custom Middleware for Simulated Delay
+// Custom Middlewares
+app.UseMiddleware<MetricsMiddleware>();
 app.UseMiddleware<SimulatedDelayMiddleware>();
 
 app.UseHttpsRedirection();
