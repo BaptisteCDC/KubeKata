@@ -2,6 +2,7 @@ using KubeKataApp.Application.Interfaces;
 using KubeKataApp.Application.Services;
 using KubeKataApp.Domain.Repositories;
 using KubeKataApp.Infrastructure.Middleware;
+using KubeKataApp.Infrastructure.Messaging;
 using KubeKataApp.Infrastructure.Repositories;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -22,9 +23,10 @@ builder.Services.AddOpenTelemetry()
         .AddProcessInstrumentation()
         .AddPrometheusExporter());
 
-// DDD Registrations
+// DDD & Messaging Registrations
 builder.Services.AddSingleton<IAdminRepository, InMemoryAdminRepository>();
 builder.Services.AddScoped<IAdminAppService, AdminAppService>();
+builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 builder.Services.AddSingleton<IDelayProvider, DelayProvider>();
 
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi

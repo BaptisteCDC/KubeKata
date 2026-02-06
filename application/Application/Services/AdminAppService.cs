@@ -10,11 +10,13 @@ public class AdminAppService : IAdminAppService
 {
     private readonly IAdminRepository _repository;
     private readonly KubeKataMetrics _metrics;
+    private readonly IMessagePublisher _publisher;
 
-    public AdminAppService(IAdminRepository repository, KubeKataMetrics metrics)
+    public AdminAppService(IAdminRepository repository, KubeKataMetrics metrics, IMessagePublisher publisher)
     {
         _repository = repository;
         _metrics = metrics;
+        _publisher = publisher;
     }
 
     public async Task<IEnumerable<AdminAccountDto>> GetAllAdminsAsync()
@@ -40,6 +42,10 @@ public class AdminAppService : IAdminAppService
 
         await _repository.AddAsync(admin);
         _metrics.RecordAdminCreated();
+
+        // Publish event for async processing
+        await _publisher.PublishAsync("admin-created", MapToDto(admin));
+
         return MapToDto(admin);
     }
 

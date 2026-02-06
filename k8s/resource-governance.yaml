@@ -1,0 +1,24 @@
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: apps-high-priority
+value: 1000000
+globalDefault: false
+description: "Priorité haute pour l'API critique"
+---
+apiVersion: scheduling.k8s.io/v1
+kind: PriorityClass
+metadata:
+  name: apps-low-priority
+value: 1000
+globalDefault: false
+description: "Priorité basse pour le worker asynchrone"
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: pod-quota
+  namespace: default
+spec:
+  hard:
+    pods: "4"

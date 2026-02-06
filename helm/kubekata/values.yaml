@@ -1,0 +1,50 @@
+# Default values for kubekata.
+
+global:
+  namespace:
+    apps: default
+    queue: queue
+    monitoring: monitoring
+
+# RabbitMQ Configuration
+rabbitmq:
+  image: rabbitmq:3-management-alpine
+  user: user
+  password: password
+
+# API Configuration
+api:
+  name: kubekata-app
+  image: kubekata-app:latest
+  replicaCount: 1
+  service:
+    type: NodePort
+    port: 80
+    nodePort: 30080
+  scaling:
+    minReplicas: 1
+    maxReplicas: 10
+    threshold: 30
+
+# Worker Configuration
+worker:
+  name: kubekata-worker
+  image: kubekata-worker:latest
+  replicaCount: 1
+  scaling:
+    minReplicas: 0
+    maxReplicas: 3
+    threshold: 10
+
+# Governance Configuration
+governance:
+  enabled: true
+  podQuota: 15
+  priorities:
+    high: 1000000
+    low: 1000
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  release: prom

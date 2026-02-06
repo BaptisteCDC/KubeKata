@@ -1,0 +1,18 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kubekata-worker-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: kubekata-worker
+  minReplicaCount: 0
+  maxReplicaCount: 3
+  triggers:
+  - type: rabbitmq
+    metadata:
+      protocol: amqp
+      queueName: admin-created
+      mode: QueueLength
+      value: "10"
+      host: amqp://user:password@rabbitmq.queue.svc.cluster.local:5672/

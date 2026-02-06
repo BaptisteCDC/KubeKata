@@ -134,4 +134,144 @@ Si tes données n'apparaissent pas, vérifie que Prometheus "voit" bien ton appl
 6. Clique sur **Save** en haut à droite.
 
 ---
-Next Phase: [Phase 4: Scalability]
+---
+## Phase 4: Scalability
+
+### 1. Install KEDA
+KEDA (Kubernetes Event-Driven Autoscaling) allows scaling based on external events like Prometheus metrics.
+
+If not already installed:
+```bash
+helm repo add kedacore https://kedacore.github.io/charts
+helm repo update
+helm install keda kedacore/keda --namespace keda --create-namespace
+```
+
+### 2. Deploy the ScaledObject
+This object tells KEDA how to scale your application based on Prometheus metrics. Ici, nous configurons un seuil de **30 requêtes sur 5 minutes par pod**.
+
+```bash
+kubectl apply -f k8s/app-scaledobject.yaml
+```
+
+> [!NOTE]
+> **Paramètres de temps par défaut :**
+> - **Polling Interval (30s)** : Fréquence de vérification des métriques.
+> - **Cooldown Period (300s / 5min)** : Temps d'attente avant de supprimer un pod après une baisse de charge.
+
+### 3. Verify Autoscaling
+Wait for some traffic, then check the status:
+```bash
+# Watch the pods scaling
+kubectl get pods -w
+
+# Check KEDA's view of the metrics
+kubectl get scaledobject kubekata-app-scaler
+```
+
+---
+## Phase 5: Asynchronous Processing (RabbitMQ & Worker)
+
+### 1. Deploy RabbitMQ
+RabbitMQ serves as our message broker.
+
+```bash
+# Create the isolated namespace
+kubectl create namespace queue
+
+# Deploy RabbitMQ
+kubectl apply -f k8s/rabbitmq-deployment.yaml
+```
+
+### 2. Build and Deploy the Worker
+The worker consumes messages from the queue and handles them idempotently.
+
+```bash
+# Publish and build Docker image
+cd worker/KubeKataWorker
+dotnet publish -c Release
+eval $(minikube docker-env)
+docker build -t kubekata-worker -f Dockerfile .
+cd ../..
+
+# Deploy Worker and its scaling rules
+kubectl apply -f k8s/worker-deployment.yaml
+kubectl apply -f k8s/worker-scaledobject.yaml
+```
+
+### 3. Verify the Async Flow
+1. Check the logs of the worker:
+   ```bash
+   kubectl logs -l app=kubekata-worker -f
+   ```
+2. Create an admin via the API (Producer) and see it appearing in the worker's logs (Consumer).
+
+---
+## Phase 6: Resource Governance (Priorities & Quotas)
+
+### 1. Apply Priority and Quotas
+This ensures the API has priority over the Worker and limits the total pods.
+
+```bash
+kubectl apply -f k8s/resource-governance.yaml
+```
+
+### 2. Update Deployments (Add Priority)
+Pour que Kubernetes prenne en compte ces priorités, tu dois éditer tes fichiers YAML pour y ajouter le `priorityClassName`.
+
+#### A. Éditer `k8s/app-deployment.yaml`
+Ajoute `priorityClassName: apps-high-priority` dans la section `spec.template.spec`:
+```yaml
+    spec:
+      priorityClassName: apps-high-priority # <-- Ajoute cette ligne
+      containers:
+      - name: kubekata-app
+```
+
+#### B. Éditer `k8s/worker-deployment.yaml`
+Ajoute `priorityClassName: apps-low-priority`:
+```yaml
+    spec:
+      priorityClassName: apps-low-priority # <-- Ajoute cette ligne
+      containers:
+      - name: kubekata-worker
+```
+
+#### C. Apply the changes
+```bash
+kubectl apply -f k8s/app-deployment.yaml
+kubectl apply -f k8s/worker-deployment.yaml
+```
+
+### 3. Verify Quotas
+Check that your namespace has a limit:
+```bash
+kubectl get quota pod-quota
+```
+---
+## Phase 7: Orchestration with Helm
+
+Helm permet de déployer toute l'architecture d'un seul coup.
+
+### 1. Installation complète
+Depuis la racine du repo :
+```bash
+helm install kubekata ./helm/kubekata
+```
+
+### 2. Vérification
+Vérifie que tous les composants sont démarrés :
+```bash
+kubectl get pods -A
+```
+
+### 3. Gestion des mises à jour
+Si tu modifies le `values.yaml` :
+```bash
+helm upgrade kubekata ./helm/kubekata
+```
+
+### 4. Suppression totale
+```bash
+helm uninstall kubekata
+```

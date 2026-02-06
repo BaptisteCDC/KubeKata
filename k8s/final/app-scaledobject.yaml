@@ -1,0 +1,19 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: kubekata-app-scaler
+  namespace: default
+spec:
+  scaleTargetRef:
+    name: kubekata-app
+  pollingInterval: 15  
+  cooldownPeriod: 15  
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prom-kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090
+      metricName: kubekata_http_requests_total
+      threshold: '2'
+      query: sum(rate(kubekata_http_requests_total[5m]))
