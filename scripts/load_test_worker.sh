@@ -1,9 +1,10 @@
 #!/bin/bash
 
 # Configuration
-URL="http://127.0.0.1:54489/api/Admin"
-COUNT=${1:-20} # Par défaut 20 cycles (100 GETs total)
-SLEEP_TIME=${2:-0.1} # Délai entre les groupes de requêtes
+DEFAULT_URL="http://127.0.0.1:54489/api/Admin"
+URL=${1:-${KUBEKATA_URL:-$DEFAULT_URL}}
+COUNT=${2:-20} # Par défaut 20 cycles (100 GETs total)
+SLEEP_TIME=${3:-0.1} # Délai entre les groupes de requêtes
 
 echo "🚀 Démarrage du test de charge hybride (1 POST + 5 GET par cycle) : $COUNT cycles..."
 
@@ -28,6 +29,8 @@ do
   do
     echo -n "g"
     curl -s "$URL" > /dev/null
+
+  sleep $SLEEP_TIME
   done
 
   echo " [$i/$COUNT]"

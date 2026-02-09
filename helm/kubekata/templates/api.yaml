@@ -26,6 +26,9 @@ spec:
       - name: kubekata-app
         image: {{ .Values.api.image | quote }}
         imagePullPolicy: Never
+        env:
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host=postgres.{{ .Values.global.namespace.apps }}.svc.cluster.local;Database={{ .Values.database.dbName }};Username={{ .Values.database.user }};Password={{ .Values.database.password }}"
         ports:
         - containerPort: 8080
 ---

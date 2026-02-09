@@ -29,6 +29,8 @@ spec:
           value: {{ .Values.rabbitmq.user | quote }}
         - name: RabbitMQ__Password
           value: {{ .Values.rabbitmq.password | quote }}
+        - name: ConnectionStrings__DefaultConnection
+          value: "Host=postgres.{{ .Values.global.namespace.apps }}.svc.cluster.local;Database={{ .Values.database.dbName }};Username={{ .Values.database.user }};Password={{ .Values.database.password }}"
         ports:
         - name: metrics
           containerPort: 9464

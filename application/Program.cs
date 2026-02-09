@@ -24,7 +24,15 @@ builder.Services.AddOpenTelemetry()
         .AddPrometheusExporter());
 
 // DDD & Messaging Registrations
-builder.Services.AddSingleton<IAdminRepository, InMemoryAdminRepository>();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddScoped<IAdminRepository, PostgreSqlAdminRepository>();
+}
+else
+{
+    builder.Services.AddSingleton<IAdminRepository, InMemoryAdminRepository>();
+}
 builder.Services.AddScoped<IAdminAppService, AdminAppService>();
 builder.Services.AddSingleton<IMessagePublisher, RabbitMqPublisher>();
 builder.Services.AddSingleton<IDelayProvider, DelayProvider>();

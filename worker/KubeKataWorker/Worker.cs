@@ -10,19 +10,22 @@ public class Worker : BackgroundService
 {
     private readonly ILogger<Worker> _logger;
     private readonly IConfiguration _configuration;
+    private readonly IMessageTracker _messageTracker;
     private readonly Counter<long> _processedCounter;
-    private readonly HashSet<Guid> _processedMessages = new(); // For Idempotency (POC only)
 
-    public Worker(ILogger<Worker> logger, IConfiguration configuration, IMeterFactory meterFactory)
+    public Worker(ILogger<Worker> logger, IConfiguration configuration, IMeterFactory meterFactory, IMessageTracker messageTracker)
     {
         _logger = logger;
         _configuration = configuration;
+        _messageTracker = messageTracker;
         var meter = meterFactory.Create("KubeKata.Worker");
         _processedCounter = meter.CreateCounter<long>("kubekata_worker_processed_total", "Total processed messages");
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        await _messageTracker.EnsureSchemaAsync();
+
         var factory = new ConnectionFactory { 
             HostName = _configuration["RabbitMQ:Host"] ?? "rabbitmq",
             UserName = _configuration["RabbitMQ:User"] ?? "user",
@@ -48,8 +51,7 @@ public class Worker : BackgroundService
 
             if (admin != null)
             {
-                // -- IDEMPOTENCY CHECK --
-                if (_processedMessages.Contains(admin.Id))
+                if (await _messageTracker.IsProcessedAsync(admin.Id))
                 {
                     _logger.LogWarning("Message {Id} already processed. Skipping.", admin.Id);
                 }
@@ -60,7 +62,8 @@ public class Worker : BackgroundService
                     // Simulate Work
                     await Task.Delay(500, stoppingToken);
 
-                    _processedMessages.Add(admin.Id);
+                    await _messageTracker.MarkAsProcessedAsync(admin.Id, admin.Username);
+                    
                     _processedCounter.Add(1, new KeyValuePair<string, object?>("status", "success"));
                 }
             }

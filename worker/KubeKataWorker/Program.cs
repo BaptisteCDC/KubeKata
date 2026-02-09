@@ -12,6 +12,16 @@ builder.Services.AddOpenTelemetry()
         .AddProcessInstrumentation()
         .AddPrometheusHttpListener(options => options.UriPrefixes = new[] { "http://+:9464/" }));
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+if (!string.IsNullOrEmpty(connectionString))
+{
+    builder.Services.AddSingleton<IMessageTracker, PostgreSqlMessageTracker>();
+}
+else
+{
+    builder.Services.AddSingleton<IMessageTracker, InMemoryMessageTracker>();
+}
+
 builder.Services.AddHostedService<Worker>();
 
 var host = builder.Build();

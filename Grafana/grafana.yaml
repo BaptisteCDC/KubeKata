@@ -110,20 +110,9 @@
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
-        },
-        {
-          "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
-          },
-          "expr": "",
-          "hide": false,
-          "instant": false,
-          "range": true,
-          "refId": "B"
         }
       ],
-      "title": "New panel",
+      "title": "Queue Size (admin-created)",
       "type": "timeseries"
     },
     {
@@ -217,7 +206,7 @@
           "refId": "A"
         }
       ],
-      "title": "nombre d'appel par seconde sur les 5 dernières minutes",
+      "title": "HTTP requests per second (5m average)",
       "type": "timeseries"
     },
     {
@@ -306,12 +295,12 @@
         {
           "editorMode": "code",
           "expr": "kube_deployment_status_replicas{deployment=~\"kubekata-app|kubekata-worker\"}",
-          "legendFormat": "__auto",
+          "legendFormat": "{{deployment}}",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Nombre de pod",
+      "title": "Pod Replicas",
       "type": "timeseries"
     },
     {
@@ -399,13 +388,13 @@
       "targets": [
         {
           "editorMode": "builder",
-          "expr": "sum(rate(kubekata_http_requests_total[1m])) by (action) * 60",
-          "legendFormat": "__auto",
+          "expr": "sum(rate(kubekata_admins_created_total[1m])) * 60",
+          "legendFormat": "Admins Created / min",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "Application telemetrie",
+      "title": "Persistence Layer Throughput (Admin Creates)",
       "type": "timeseries"
     },
     {
@@ -499,12 +488,12 @@
         {
           "editorMode": "code",
           "expr": "(\n  sum(rate(kubekata_http_requests_total{status=~\"2..\"}[5m])) by (action)\n  / \n  sum(rate(kubekata_http_requests_total[5m])) by (action)\n) * 100",
-          "legendFormat": "__auto",
+          "legendFormat": "{{action}} success rate",
           "range": true,
           "refId": "A"
         }
       ],
-      "title": "New panel",
+      "title": "HTTP Success Rate by Action",
       "type": "barchart"
     }
   ],
@@ -516,12 +505,12 @@
     "list": []
   },
   "time": {
-    "from": "2026-02-06T13:03:09.007Z",
-    "to": "2026-02-06T16:03:39.021Z"
+    "from": "now-6h",
+    "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "Application Télémetrie",
+  "title": "KubeKata Dashboard",
   "uid": "adw9kcs",
-  "version": 9
+  "version": 10
 }

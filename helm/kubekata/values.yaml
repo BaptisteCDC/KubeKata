@@ -12,6 +12,14 @@ rabbitmq:
   user: user
   password: password
 
+# Database Configuration
+database:
+  image: postgres:15-alpine
+  user: user
+  password: password
+  dbName: kubekata
+  port: 5432
+
 # API Configuration
 api:
   name: kubekata-app
